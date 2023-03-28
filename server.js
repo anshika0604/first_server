@@ -1,43 +1,47 @@
-// server creation
+const express = require("express");
 
-const http = require("http");
+// initialization
+const app = express();
+
+app.use(express.json());
 
 const port = 8081;
 const toDoList = ["Need to learn","Need to code"];
 
-http.createServer((req,res) => {
-    // res.writeHead(200, {"Content-Type":"text/html"});
-    // res.write("<h4>Hello, My new server</h4>");
-    // res.end();
-    const {method, url} = req;
-    // console.log(method,url);
-    // res.end();
-    if(url === "/todos") {
-        if(method === "GET") {
-            res.writeHead(200,{"Content-Type":"text/html"});
-            res.write(toDoList.toString());
-        } else if(method === "POST") {
-            let body = "";
-            res.on('error',(err) => {
-                console.log(err);
-            }).on('data',(chunk) => {
-                body += chunk;
-                console.log(chunk);
-            }).on('end',() => {
-                body = JSON.parse(body);
-                console.log("body data ",body);
-            });
-        }
-        else {
-            res.writeHead(501);
-        }
-    } else {
-        res.writeHead(404);
-    }
-    res.end();
+// http://localhost:8081/todos
 
-}).listen(port, () => {
-    console.log(`My NodeJs server started on port ${port} `);
+app.get("/todos", (req,res) => {
+    res.status(200).send(toDoList);
+});
+
+app.post("/todos",(req,res) => {
+    let newToDo = req.body.item;
+    toDoList.push(newToDo);
+    res.status(201).send({
+        message: "ToDo Got added successfully"
+    })
+});
+
+app.delete("/todos",(req,res) => {
+    const ItemToDelete = req.body.item;
+    toDoList.find((element,index) => {
+        if(element == ItemToDelete) {
+            toDoList.splice(index,1);
+        }
+    })
+    res.status(204).send({
+        message : `Deleted Item "${req.body.item}"`
+    })
+});
+
+app.all("/todos", (req,res) => {
+    res.status(501).send();
+});
+
+app.all("*",(req,res) => {
+    res.status(404).send();
+});
+
+app.listen(port,() => {
+    console.log(`Node Js server started on ${port}`);
 })
-
-// http://localhost:8081
